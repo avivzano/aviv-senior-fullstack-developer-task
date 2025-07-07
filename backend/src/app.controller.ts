@@ -1,25 +1,22 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from './guards/auth.guard';
+import { Request } from 'express';
+import { User } from './users/users.entity';
 
-export enum UserStatus {
-  Enabled = 'Enabled',
-  Disabled = 'Disabled',
-  Deleted = 'Deleted',
+interface RequestWithUser extends Request {
+  user: User;
 }
 
-@Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ unique: true })
-  username: string;
-
-  @Column({ type: 'simple-json', default: '["User"]' })
-  roles: string[];
-
-  @Column({
-    type: 'text',
-    default: UserStatus.Enabled,
-  })
-  status: UserStatus;
+@Controller()
+export class AppController {
+  @UseGuards(AuthGuard)
+  @Get()
+  getHello(@Req() request: RequestWithUser) {
+    return {
+      id: request.user.id,
+      username: request.user.username,
+      roles: request.user.roles,
+      status: request.user.status,
+    };
+  }
 }
