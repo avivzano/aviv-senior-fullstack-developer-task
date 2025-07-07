@@ -1,10 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
-
-export enum UserStatus {
-  Enabled = 'Enabled',
-  Disabled = 'Disabled',
-  Deleted = 'Deleted',
-}
+import { UserStatus } from './user-status.enum';
 
 @Entity('users')
 export class User {

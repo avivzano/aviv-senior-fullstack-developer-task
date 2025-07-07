@@ -7,6 +7,7 @@ import {
 import { UsersService } from '../users/users.service';
 import { Request } from 'express';
 import { User } from '../users/users.entity';
+import { UserStatus } from '../users/user-status.enum';
 
 interface RequestWithUser extends Request {
   user?: User;
@@ -14,20 +15,25 @@ interface RequestWithUser extends Request {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<RequestWithUser>();
-    const username = request.headers['token'] as string | undefined;
+
+    const username = request.params?.username;
 
     if (!username) {
-      throw new UnauthorizedException('Token header is missing');
+      throw new UnauthorizedException('Username not provided in route params');
     }
 
     const user = await this.usersService.findByUsername(username);
 
     if (!user) {
       throw new UnauthorizedException('User not found');
+    }
+
+    if (user.status === UserStatus.Deleted) {
+      throw new UnauthorizedException('User is deleted');
     }
 
     request.user = user;
